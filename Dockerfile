@@ -1,18 +1,14 @@
-FROM alpine:3.7
+FROM alpine:3.11
 
-ARG BUILD_DATE
-ARG VCS_REF
-ARG VERSION
-LABEL org.label-schema.build-date=$BUILD_DATE \
-			org.label-schema.name="ocp-utils" \
-			org.label-schema.description="Generates table of contents for markdown files inside local git repository." \
-			org.label-schema.url="http://andradaprieto.es" \
-			org.label-schema.vcs-ref=$VCS_REF \
-			org.label-schema.vcs-url="https://github.com/jandradap/ocp-utils" \
-			org.label-schema.vendor="Jorge Andrada Prieto" \
-			org.label-schema.version=$VERSION \
-			org.label-schema.schema-version="1.0" \
-			maintainer="Jorge Andrada Prieto <jandradap@gmail.com>"
+LABEL org.label-schema.name="duplicacy-autobackup" \
+    org.label-schema.description="Painless automated backups to multiple storage providers with Docker and duplicacy." \
+    org.label-schema.url="http://andradaprieto.es" \
+    org.label-schema.vcs-ref="2.5.0" \
+    org.label-schema.vcs-url="https://github.com/jandradap/duplicacy-autobackup" \
+    org.label-schema.vendor="Jorge Andrada Prieto" \
+    org.label-schema.version=$VERSION \
+    org.label-schema.schema-version="1.0" \
+    maintainer="Jorge Andrada Prieto <jandradap@gmail.com>"
 
 ARG DUPLICACY_VERSION=2.5.0
 
@@ -43,20 +39,27 @@ ENV BACKUP_SCHEDULE='* * * * *' \
 
 RUN apk --update --clean-protected --no-cache add \
   ca-certificates \
+  openssh \
   && rm -rf /var/cache/apk/* \
-  && update-ca-certificates
-  
-RUN wget https://github.com/gilbertchen/duplicacy/releases/download/v${DUPLICACY_VERSION}/duplicacy_linux_x64_${DUPLICACY_VERSION} \
-  -O /usr/bin/duplicacy && \
-  chmod +x /usr/bin/duplicacy
-
-RUN mkdir /app
+  && update-ca-certificates \
+  && mkdir /app
 
 WORKDIR /app
 
-ADD assets/*.sh ./
+COPY ./assets/* ./
 
 RUN chmod +x *.sh
+
+RUN ARCH="$(uname -m)";\
+    if [ "$ARCH" == "x86_64" ]; then \
+        DUPLICACY_ARCH="x64"; \
+    elif [ "$ARCH" == "aarch64" ]; then \
+        DUPLICACY_ARCH="arm64"; \
+    elif [ "$ARCH" == "armv7l" ]; then \
+        DUPLICACY_ARCH="arm"; \
+    fi; \
+    wget https://github.com/gilbertchen/duplicacy/releases/download/v${DUPLICACY_VERSION}/duplicacy_linux_${DUPLICACY_ARCH}_${DUPLICACY_VERSION} -O /usr/bin/duplicacy && \
+    chmod +x /usr/bin/duplicacy
 
 VOLUME ["/data"]
 

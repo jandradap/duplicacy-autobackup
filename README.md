@@ -1,6 +1,8 @@
 # Duplicacy Autobackup
 
-[![Build Status](https://travis-ci.org/christophetd/duplicacy-autobackup.svg?branch=master)](https://travis-ci.org/christophetd/duplicacy-autobackup)  [![](https://images.microbadger.com/badges/image/christophetd/duplicacy-autobackup.svg)](https://microbadger.com/images/christophetd/duplicacy-autobackup "Get your own image badge on microbadger.com")
+[![Build Status](https://travis-ci.org/jandradap/duplicacy-autobackup.svg?branch=master)](https://travis-ci.org/jandradap/duplicacy-autobackup)  [![](https://images.microbadger.com/badges/image/jorgeandrada/duplicacy-autobackup.svg)](https://microbadger.com/images/jorgeandrada/duplicacy-autobackup "Get your own image badge on microbadger.com")[![](https://images.microbadger.com/badges/version/jorgeandrada/duplicacy-autobackup.svg)](https://microbadger.com/images/jorgeandrada/duplicacy-autobackup "Get your own version badge on microbadger.com")[![](https://images.microbadger.com/badges/commit/jorgeandrada/duplicacy-autobackup.svg)](https://microbadger.com/images/jorgeandrada/duplicacy-autobackup "Get your own commit badge on microbadger.com")
+
+<a href='https://ko-fi.com/A417UXC' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://az743702.vo.msecnd.net/cdn/kofi2.png?v=0' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 Duplicacy Autobackup is a Docker image to easily perform automated backups. It uses [duplicacy](https://github.com/gilbertchen/duplicacy) under the hood, and therefore supports:
 
@@ -10,6 +12,8 @@ Duplicacy Autobackup is a Docker image to easily perform automated backups. It u
 - Multi-versioning
 - ... and more generally, all the features that duplicacy has.
 
+Forked from <https://github.com/christophetd/duplicacy-autobackup>
+
 ## Usage
 
 The following environment variables can be used to configure the backup strategy.
@@ -18,9 +22,9 @@ The following environment variables can be used to configure the backup strategy
 - `BACKUP_ENCRYPTION_KEY`: An optional passphrase to encrypt your backups with before they are stored remotely.
 - `BACKUP_SCHEDULE`: Cron-like string to define the frequency at which backups should be made (e.g. `0 2 * * *` for `Every day at 2am`). Note that this string should be indicated in the UTC timezone.
 - `BACKUP_LOCATION`: [Duplicacy URI](https://github.com/gilbertchen/duplicacy/wiki/Storage-Backends) of where to store the backups.
-    - S3: `s3://region@amazon.com/bucket/path/to/storage`
-    - Backblaze B2: `b2://my-bucket/`
-    - ...
+  - S3: `s3://region@amazon.com/bucket/path/to/storage`
+  - Backblaze B2: `b2://my-bucket/`
+  - ...
 
 Additionally, the directory you want to backup must be mounted to `/data` on the container.
 
@@ -41,8 +45,8 @@ You need to provide credentials for the storage provider your of your choice usi
 
 If you want to execute an out of schedule backup, you can do so by running the script `/app/backup.sh` inside the container :
 
-``` 
-$ docker exec duplicacy-autobackup /app/duplicacy-autobackup.sh backup
+```bash
+docker exec duplicacy-autobackup /app/duplicacy-autobackup.sh backup
 ```
 
 ## Example
@@ -58,7 +62,7 @@ $ docker run -d --name duplicacy-autobackup \
     -e BACKUP_ENCRYPTION_KEY='correct horse battery staple' \
     -e AWS_ACCESS_KEY_ID='AKIA...' \
     -e AWS_SECRET_KEY='...' \
-    christophetd/duplicacy-autobackup
+    jandradap/duplicacy-autobackup
 ```
 
 ## Viewing and restoring backups
@@ -74,7 +78,7 @@ Backups are useless if you don't make sure they work. This shows the procedure t
 
   You will get a prompt asking for your storage provider's credentials, and, if applicable, your encryption key:
 
-  ```
+  ```bash
   Enter S3 Access Key ID: *****
   Enter S3 Secret Access Key: *************
   Enter storage password for s3://eu-west-1@amazon.com/xtof-db-backups:*******************
@@ -89,7 +93,7 @@ Backups are useless if you don't make sure they work. This shows the procedure t
 
 - To list the versions of your backups, run:
 
-  ```
+  ```nash
   $ duplicacy list
   Storage set to s3://eu-west-1@amazon.com/xtof-db-backups
   Enter storage password:*******************
@@ -101,19 +105,19 @@ Backups are useless if you don't make sure they work. This shows the procedure t
 - To view the files of a particular revision, run:
 
   ```bash
-  $ duplicacy list -files -r 2  # 2 is the revision number
+  duplicacy list -files -r 2  # 2 is the revision number
   ```
 
 - To restore in the current directory all the files matching `*.txt` of the revision 2 of the backup, run:
 
   ```bash
-  $ duplicacy restore -r 2 '*.txt'
+  duplicacy restore -r 2 '*.txt'
   ```
 
 - To restore in the current directory the whole revision 2 of your backup, run:
 
-  ```
-  $ duplicacy restore -r 2
+  ```bash
+  duplicacy restore -r 2
   ```
 
 More: see [Duplicacy's documentation](https://github.com/gilbertchen/duplicacy/wiki).
@@ -132,29 +136,28 @@ Use the following environment variables if you want to customize duplicacy's beh
 
 Duplicacy offers an option to [prune](https://forum.duplicacy.com/t/prune-command-details/1005) old backups. By default, duplicacy-autobackup does _not_ perform any pruning. However, you can set the environment variables `DUPLICACY_PRUNE_OPTIONS` and `PRUNE_SCHEDULE` to perform automatic pruning. As an example, setting:
 
-```
+```bash
 DUPLICACY_PRUNE_OPTIONS='-keep 0:360 -keep 30:180 -keep 7:30'
 PRUNE_SCHEDULE='0 0 * * *'
 ```
 
 Means that:
+
 - Every day at midnight, the pruning process runs
 - When the pruning process runs...
-   - Any backup older than 1 year is deleted from the remote storage
-   - Only 1 backup per 30 days is kept for backups between 180 days and 360 days old
-   - Only 1 backup per 7 days is kept for backups between 7 days and 180 days old
-   - 1 backup per day is kept for backups between 0 day and 7 days old
-
+  - Any backup older than 1 year is deleted from the remote storage
+  - Only 1 backup per 30 days is kept for backups between 180 days and 360 days old
+  - Only 1 backup per 7 days is kept for backups between 7 days and 180 days old
+  - 1 backup per day is kept for backups between 0 day and 7 days old
 
  See the [prune command details](https://forum.duplicacy.com/t/prune-command-details/1005) for further details.
-
 
 ## Choosing the Duplicacy version
 
 When building the container, you can choose the Duplicacy version that will be used in the container image. The build argument `DUPLICACY_VERSION` is available for that purpose, e.g.:
 
-```
-docker build --build-arg DUPLICACY_VERSION=2.1.0 -t christophetd/duplicacy-autobackup .
+```bash
+docker build --build-arg DUPLICACY_VERSION=2.1.0 -t jandradap/duplicacy-autobackup .
 ```
 
 ## Disclaimer
@@ -163,4 +166,4 @@ This project uses [Duplicacy](https://github.com/gilbertchen/duplicacy), which i
 
 ## Contact
 
-Feel free to [open an issue](https://github.com/christophetd/duplicacy-autobackup/issues/new) for any suggestion or bug. You can also tweet [@christophetd](https://twitter.com/christophetd).
+Feel free to [open an issue](https://github.com/jandradap/duplicacy-autobackup/issues/new) for any suggestion or bug.
