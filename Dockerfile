@@ -10,6 +10,8 @@ LABEL org.label-schema.name="duplicacy-autobackup" \
     org.label-schema.schema-version="1.0" \
     maintainer="Jorge Andrada Prieto <jandradap@gmail.com>"
 
+ARG DUPLICACY_VERSION=2.5.0
+
 ENV BACKUP_SCHEDULE='* * * * *' \
     BACKUP_NAME='' \
     BACKUP_LOCATION='' \
@@ -48,8 +50,7 @@ COPY ./assets/* ./
 
 RUN chmod +x *.sh
 
-RUN export DUPLICACY_VERSION=$(cat /app/VERSION) \
-    ARCH="$(uname -m)";\
+RUN ARCH="$(uname -m)";\
     if [ "$ARCH" == "x86_64" ]; then \
         DUPLICACY_ARCH="x64"; \
     elif [ "$ARCH" == "aarch64" ]; then \
