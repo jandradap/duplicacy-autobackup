@@ -35,6 +35,7 @@ You need to provide credentials for the storage provider your of your choice usi
 - Hubic: `HUBIC_TOKEN_FILE`*
 - Google Cloud Storage: `GCS_TOKEN_FILE`*
 - Onedrive: `ONEDRIVE_TOKEN_FILE`*
+- Wasabi: `WASABI_KEY` and `WASABI_SECRET`
 
 *Environment variables marked with an asterix point to files. Those files must be mounted in the container so that they can be accessed from inside it*.
 
@@ -126,6 +127,35 @@ Use the following environment variables if you want to customize duplicacy's beh
 - `BACKUP_IMMEDIATELY` (`yes`/`no`): indicates if a backup should be performed immediately after the container is started. Equivalent to launching the container and then running `docker exec duplicacy-autobackup /app/duplicacy-autobackup.sh backup`. By default, `no`.
 - `DUPLICACY_INIT_OPTIONS`: options passed to `duplicacy init` the first time a backup is made. By default, `-encrypt` if `BACKUP_ENCRYPTION_KEY` is not empty.
 - `DUPLICACY_BACKUP_OPTIONS`: options passed to `duplicacy backup` when a backup is performed. By default: `-threads 4 -stats`. **If you are backing up a hard drive (and not a SSD), it is recommended to use `-threads 1 -stats` instead** (see [here](https://duplicacy.com/issue?id=5670666258874368) for more details).
+
+### Pruning old backups
+
+Duplicacy offers an option to [prune](https://forum.duplicacy.com/t/prune-command-details/1005) old backups. By default, duplicacy-autobackup does _not_ perform any pruning. However, you can set the environment variables `DUPLICACY_PRUNE_OPTIONS` and `PRUNE_SCHEDULE` to perform automatic pruning. As an example, setting:
+
+```
+DUPLICACY_PRUNE_OPTIONS='-keep 0:360 -keep 30:180 -keep 7:30'
+PRUNE_SCHEDULE='0 0 * * *'
+```
+
+Means that:
+- Every day at midnight, the pruning process runs
+- When the pruning process runs...
+   - Any backup older than 1 year is deleted from the remote storage
+   - Only 1 backup per 30 days is kept for backups between 180 days and 360 days old
+   - Only 1 backup per 7 days is kept for backups between 7 days and 180 days old
+   - 1 backup per day is kept for backups between 0 day and 7 days old
+
+
+ See the [prune command details](https://forum.duplicacy.com/t/prune-command-details/1005) for further details.
+
+
+## Choosing the Duplicacy version
+
+When building the container, you can choose the Duplicacy version that will be used in the container image. The build argument `DUPLICACY_VERSION` is available for that purpose, e.g.:
+
+```
+docker build --build-arg DUPLICACY_VERSION=2.1.0 -t christophetd/duplicacy-autobackup .
+```
 
 ## Disclaimer
 
